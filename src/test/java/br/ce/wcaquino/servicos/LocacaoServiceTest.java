@@ -1,6 +1,8 @@
 package br.ce.wcaquino.servicos;
 
-import static br.ce.wcaquino.utils.DataUtils.isMesmaData;
+import static br.ce.wcaquino.matchers.MatchersProprios.caiNumaSegunda;
+import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
+import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -11,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,6 +45,8 @@ public class LocacaoServiceTest {
 	
 	@Test
 	public void deveAlugarFilme() throws Exception {
+		Assume.assumeFalse(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
+		
 		// cenario
 		Usuario usuario = new Usuario("Usuario 1");
 		List<Filme> filmes = Arrays.asList(new Filme("Filme", 2, 5.0));
@@ -51,8 +56,10 @@ public class LocacaoServiceTest {
 			
 			// verificação
 			error.checkThat(locacao.getValor(), is(equalTo(5.0)));
-			error.checkThat(isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
-			error.checkThat(isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)), is(true));
+			//error.checkThat(isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
+			error.checkThat(locacao.getDataLocacao(), ehHoje());
+			//error.checkThat(isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)), is(true));
+			error.checkThat(locacao.getDataRetorno(),ehHojeComDiferencaDias(1));
 			
 	}
 	//elegante
@@ -102,74 +109,9 @@ public class LocacaoServiceTest {
 		}
 		
 		@Test
-		public void devePagar75PctNoFilme3() throws FilmeSemEstoqueException, LocadoraException {
-			//cenario
-			Usuario usuario = new Usuario("usuario 1");
-			List<Filme> filmes = Arrays.asList(
-					new Filme("Filme 1",2,4.0),
-					new Filme("Filme 2",2,4.0),
-					new Filme("Filme 3",2,4.0));
-			//ação
-			
-			Locacao resultado = service.alugarFilme(usuario, filmes);
-			//verificação
-			Assert.assertThat(resultado.getValor(),is(11.0));
-			
-		}
-		@Test
-		public void devePagar50PctNoFilme4() throws FilmeSemEstoqueException, LocadoraException {
-			//cenario
-			Usuario usuario = new Usuario("usuario 1");
-			List<Filme> filmes = Arrays.asList(
-					new Filme("Filme 1",2,4.0),
-					new Filme("Filme 2",2,4.0),
-					new Filme("Filme 3",2,4.0),
-					new Filme("Filme 4",2,4.0));
-			//ação
-			
-			Locacao resultado = service.alugarFilme(usuario, filmes);
-			//verificação
-			Assert.assertThat(resultado.getValor(),is(13.0));
-			
-		}
-		@Test
-		public void devePagar25PctNoFilme5() throws FilmeSemEstoqueException, LocadoraException {
-			//cenario
-			Usuario usuario = new Usuario("usuario 1");
-			List<Filme> filmes = Arrays.asList(
-					new Filme("Filme 1",2,4.0),
-					new Filme("Filme 2",2,4.0),
-					new Filme("Filme 3",2,4.0),
-					new Filme("Filme 4",2,4.0),
-					new Filme("Filme 5",2,4.0));
-			//ação
-			
-			Locacao resultado = service.alugarFilme(usuario, filmes);
-			//verificação
-			Assert.assertThat(resultado.getValor(),is(14.0));
-			
-		}
-		@Test
-		public void devePagar0PctNoFilme6() throws FilmeSemEstoqueException, LocadoraException {
-			//cenario
-			Usuario usuario = new Usuario("usuario 1");
-			List<Filme> filmes = Arrays.asList(
-					new Filme("Filme 1",2,4.0),
-					new Filme("Filme 2",2,4.0),
-					new Filme("Filme 3",2,4.0),
-					new Filme("Filme 4",2,4.0),
-					new Filme("Filme 5",2,4.0),
-					new Filme("Filme 6",2,4.0));
-			//ação
-			
-			Locacao resultado = service.alugarFilme(usuario, filmes);
-			//verificação
-			Assert.assertThat(resultado.getValor(),is(14.0));
-			
-		}
-		
-		@Test
 		public void deveDevolverNaSegundaAoAlugarNoSabado() throws FilmeSemEstoqueException, LocadoraException {
+			Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(),Calendar.SATURDAY));
+			
 			//cenario
 			Usuario usuario = new Usuario("Usuario 1");
 			List<Filme> filmes = Arrays.asList(new Filme("Filme 1",1, 5.0));
@@ -178,8 +120,7 @@ public class LocacaoServiceTest {
 			Locacao retorno = service.alugarFilme(usuario, filmes);
 			
 			//verificação
-			boolean ehSegunda = DataUtils.verificarDiaSemana(retorno.getDataRetorno(),Calendar.MONDAY);
-			Assert.assertTrue(ehSegunda);
+			assertThat(retorno.getDataRetorno(), caiNumaSegunda());
 		}
 		
 		
