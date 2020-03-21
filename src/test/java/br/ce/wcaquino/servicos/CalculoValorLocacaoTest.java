@@ -73,5 +73,6 @@ public class CalculoValorLocacaoTest {
 		// verificação
 		Assert.assertThat(resultado.getValor(), is(valorLocacao));
 
+		
 	}
 }
