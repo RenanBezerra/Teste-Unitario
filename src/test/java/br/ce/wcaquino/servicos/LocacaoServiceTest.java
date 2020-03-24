@@ -21,12 +21,14 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -40,9 +42,10 @@ import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
+import br.ce.wcaquino.runners.ParallelRunner;
 import br.ce.wcaquino.utils.DataUtils;
 
-
+@RunWith(ParallelRunner.class)
 public class LocacaoServiceTest {
 	
 	@InjectMocks @Spy  
@@ -65,9 +68,15 @@ public class LocacaoServiceTest {
 	
 	@Before
 	public void setup() {
+		
 		MockitoAnnotations.initMocks(this);
+		System.out.println("iniciando before service 2....");
 	}
 	
+	@After
+	public void tearDown() {
+		System.out.println("finalizando after service 2....");
+	}
 	@Test
 	public void deveAlugarFilme() throws Exception {
 		//Assume.assumeFalse(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));

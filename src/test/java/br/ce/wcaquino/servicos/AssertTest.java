@@ -1,7 +1,5 @@
 package br.ce.wcaquino.servicos;
 
-import static org.junit.Assert.assertNull;
-
 import org.junit.Assert;
 import org.junit.Test;
 
