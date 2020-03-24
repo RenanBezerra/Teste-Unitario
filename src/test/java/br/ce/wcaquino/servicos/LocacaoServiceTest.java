@@ -1,4 +1,4 @@
-package br.ce.wcaquino.servicos;
+package br.ce.wcaquino.servicos;  
 
 import static br.ce.wcaquino.builder.FilmeBuilder.umFilme;
 import static br.ce.wcaquino.builder.FilmeBuilder.umFilmeSemEstoque;
@@ -7,6 +7,7 @@ import static br.ce.wcaquino.builder.UsuarioBuilder.umUsuario;
 import static br.ce.wcaquino.matchers.MatchersProprios.caiNumaSegunda;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
+import static br.ce.wcaquino.utils.DataUtils.isMesmaData;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -16,13 +17,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
@@ -45,7 +45,7 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 	
-	@InjectMocks
+	@InjectMocks @Spy  
 	private LocacaoService service;
 	
 	@Mock
@@ -70,11 +70,13 @@ public class LocacaoServiceTest {
 	
 	@Test
 	public void deveAlugarFilme() throws Exception {
-		Assume.assumeFalse(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
+		//Assume.assumeFalse(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
 		
 		// cenario
 		Usuario usuario = umUsuario().agora();
 		List<Filme> filmes = Arrays.asList(umFilme().comValor(5.0).agora());
+   		
+		Mockito.doReturn(DataUtils.obterData(28, 4, 2017)).when(service).obterData();
 		
 		// ação
 		Locacao locacao = service.alugarFilme(usuario, filmes);
@@ -82,9 +84,13 @@ public class LocacaoServiceTest {
 			// verificação
 			error.checkThat(locacao.getValor(), is(equalTo(5.0)));
 			//error.checkThat(isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
-			error.checkThat(locacao.getDataLocacao(), ehHoje());
+			//error.checkThat(locacao.getDataLocacao(), ehHoje());
 			//error.checkThat(isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)), is(true));
-			error.checkThat(locacao.getDataRetorno(),ehHojeComDiferencaDias(1));
+			//error.checkThat(locacao.getDataRetorno(),ehHojeComDiferencaDias(1));
+			error.checkThat(isMesmaData(locacao.getDataLocacao(), DataUtils.obterData(28,4, 2017)),is(true));
+
+			error.checkThat(isMesmaData(locacao.getDataRetorno(), DataUtils.obterData(29,4, 2017)),is(true));
+
 			
 	}
 	//elegante
@@ -132,19 +138,21 @@ public class LocacaoServiceTest {
 		}
 		    
 		@Test   
-		public void deveDevolverNaSegundaAoAlugarNoSabado() throws FilmeSemEstoqueException, LocadoraException {
-			Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(),Calendar.SATURDAY));
+		public void deveDevolverNaSegundaAoAlugarNoSabado() throws Exception {
+			//Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(),Calendar.SATURDAY));
 			
 			//cenario
 			Usuario usuario = umUsuario().agora();
 			List<Filme> filmes = Arrays.asList(umFilme().agora());
 			
+			Mockito.doReturn(DataUtils.obterData(29, 4, 2017)).when(service).obterData();
 			
 			//ação
 			Locacao retorno = service.alugarFilme(usuario, filmes);
 			
 			//verificação
 			assertThat(retorno.getDataRetorno(), caiNumaSegunda());
+			
 		}
 		
 		
@@ -233,8 +241,22 @@ public class LocacaoServiceTest {
 		}
 		
 		
-	
-	
+ 		
+		@Test
+		public void deveCalcularValorLocacao() throws Exception{
+			//cenario
+				List<Filme> filmes = Arrays.asList(umFilme().agora());
+			//ação
+			Class<LocacaoService> clazz	=LocacaoService.class;
+			Method metodo = clazz.getDeclaredMethod("calcularValorLocacao", List.class);
+			metodo.setAccessible(true);
+			Double valor = (Double) metodo.invoke(service, filmes);
+			
+				
+				
+			//verificação
+			Assert.assertThat(valor, is(4.0));
+		}
 	
 	
 	
